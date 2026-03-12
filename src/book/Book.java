@@ -1,5 +1,7 @@
 package book;
 
+import util.ValidationUtil;
+
 import java.util.Objects;
 
 public abstract class Book {
@@ -45,18 +47,33 @@ public abstract class Book {
     }
 
     public void setId(int id) {
+
+        ValidationUtil.requireNonNull(id, "The book's id cannot be null.");
+        ValidationUtil.requirePositive(id, "The book's id cannot be less or equal to 0.");
+
         this.id = id;
     }
 
     public void setName(String name) {
+
+        ValidationUtil.requireNonNull(name, "The book's name cannot be null.");
+        ValidationUtil.requireNonEmpty(name, "The book's name cannot be empty.");
+
         this.name = name;
     }
 
     public void setAuthor(String author) {
+
+        ValidationUtil.requireNonNull(author, "The book's author cannot be null.");
+        ValidationUtil.requireNonEmpty(author, "The book's author cannot be empty.");
+
         this.author = author;
     }
 
     public void setPrice(double price) {
+
+        ValidationUtil.requirePositiveDouble(price, "The book's price cannot be less or equal to 0.");
+
         this.price = price;
     }
 

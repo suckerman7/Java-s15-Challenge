@@ -1,5 +1,7 @@
 package person;
 
+import util.ValidationUtil;
+
 import java.util.Objects;
 
 public abstract class Person {
@@ -34,18 +36,34 @@ public abstract class Person {
     }
 
     public void setId(int id) {
+
+        ValidationUtil.requireNonNull(id, "The person's id cannot be null.");
+        ValidationUtil.requirePositive(id, "The person's id cannot be less or equal to 0.");
+
         this.id = id;
     }
 
     public void setName(String name) {
+
+        ValidationUtil.requireNonNull(name, "The person's name cannot be null.");
+        ValidationUtil.requireNonEmpty(name, "The person's name cannot be empty.");
+
         this.name = name;
     }
 
     public void setEmail(String email) {
+
+        ValidationUtil.requireNonNull(name, "The person's email cannot be null.");
+        ValidationUtil.requireNonEmpty(name, "The person's email cannot be empty.");
+
         this.email = email;
     }
 
     public void setPhoneNumber(String phoneNumber) {
+
+        ValidationUtil.requireNonNull(name, "The person's phone number cannot be null.");
+        ValidationUtil.requireNonEmpty(name, "The person's phone number cannot be empty.");
+
         this.phoneNumber = phoneNumber;
     }
 
