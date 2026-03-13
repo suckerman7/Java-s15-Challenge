@@ -1,11 +1,12 @@
-package libraryApp;
+package main;
 
 import book.Book;
 import book.BookCategory;
 import book.factory.BookFactory;
 import membership.Student;
-import model.Library;
-import service.LibraryService;
+import library.SingletonLibrary;
+import menu.LibraryAppMenu;
+import operations.LibraryOperations;
 
 import java.util.List;
 import java.util.Scanner;
@@ -14,8 +15,8 @@ public class LibraryApplication {
 
     public static void main(String[] args) {
 
-        Library library = new Library();
-        LibraryService service = new LibraryService(library);
+        SingletonLibrary singletonLibrary = SingletonLibrary.getInstance();
+        LibraryOperations operation = new LibraryOperations(singletonLibrary);
 
         Scanner scanner = new Scanner(System.in);
 
@@ -28,29 +29,36 @@ public class LibraryApplication {
 
         while (true) {
 
-            printMenu();
+            LibraryAppMenu.printMenuOptions();
 
             int choice = scanner.nextInt();
 
-            switch (choice) {
+            LibraryAppMenu menuOption = LibraryAppMenu.fromValue(choice);
 
-                case 1 -> addBook(scanner, service);
+            if (menuOption == null) {
+                System.out.println("Invalid choice!");
+                continue;
+            }
 
-                case 2 -> removeBook(scanner, service);
+            switch (menuOption) {
 
-                case 3 -> searchBook(scanner, service);
+                case ADD_BOOK -> addBook(scanner, operation);
 
-                case 4 -> listBooksByCategory(scanner, service);
+                case REMOVE_BOOK -> removeBook(scanner, operation);
 
-                case 5 -> borrowBook(scanner, service, student);
+                case SEARCH_BOOK_BY_ID -> searchBook(scanner, operation);
 
-                case 6 -> returnBook(scanner, service, student);
+                case LIST_BY_CATEGORY -> listBooksByCategory(scanner, operation);
 
-                case 7 -> service.printBorrowedBooks();
+                case BORROW_BOOK -> borrowBook(scanner, operation, student);
 
-                case 8 -> service.printInvoices();
+                case RETURN_BOOK -> returnBook(scanner, operation, student);
 
-                case 0 -> {
+                case SHOW_BORROWED -> operation.printBorrowedBooks();
+
+                case SHOW_INVOICES -> operation.printInvoices();
+
+                case EXIT -> {
                     System.out.println("Exiting...");
                     return;
                 }
@@ -60,21 +68,7 @@ public class LibraryApplication {
         }
     }
 
-    private static void printMenu() {
-
-        System.out.println("\n==== LIBRARYAPP MENU ====");
-        System.out.println("1: Add Book");
-        System.out.println("2: Remove Book");
-        System.out.println("3: Search Book By ID");
-        System.out.println("4: List Books By Category");
-        System.out.println("5: Borrow Book");
-        System.out.println("6: Return Book");
-        System.out.println("7: Show Borrowed Books");
-        System.out.println("8: Show Invoices");
-        System.out.println("0: Exit");
-    }
-
-    private static void addBook(Scanner scanner, LibraryService service) {
+    private static void addBook(Scanner scanner, LibraryOperations operation) {
 
         scanner.nextLine();
 
@@ -93,24 +87,24 @@ public class LibraryApplication {
 
             Book book = BookFactory.createBook(category, name, author, price);
 
-            service.addBook(book);
+            operation.addBook(book);
         }
     }
 
-    private static void removeBook(Scanner scanner, LibraryService service) {
+    private static void removeBook(Scanner scanner, LibraryOperations operation) {
 
         System.out.println("Enter Book ID:");
         int id = scanner.nextInt();
 
-        service.removeBook(id);
+        operation.removeBook(id);
     }
 
-    private static void searchBook(Scanner scanner, LibraryService service) {
+    private static void searchBook(Scanner scanner, LibraryOperations operation) {
 
         System.out.println("Enter Book ID:");
         int id = scanner.nextInt();
 
-        Book book = service.searchById(id);
+        Book book = operation.searchById(id);
 
         if (book != null)
             System.out.println(book);
@@ -118,32 +112,32 @@ public class LibraryApplication {
             System.out.println("Book not found.");
     }
 
-    private static void listBooksByCategory(Scanner scanner, LibraryService service) {
+    private static void listBooksByCategory(Scanner scanner, LibraryOperations operation) {
 
         BookCategory category = selectCategory(scanner);
 
         if (category == null)
             return;
 
-        List<Book> books = service.listBooksByCategory(category);
+        List<Book> books = operation.listBooksByCategory(category);
 
         books.forEach(System.out::println);
     }
 
-    private static void borrowBook(Scanner scanner, LibraryService service, Student student) {
+    private static void borrowBook(Scanner scanner, LibraryOperations operation, Student student) {
 
         System.out.println("Enter Book ID:");
         int id = scanner.nextInt();
 
-        service.borrowBook(id, student);
+        operation.borrowBook(id, student);
     }
 
-    private static void returnBook(Scanner scanner, LibraryService service, Student student) {
+    private static void returnBook(Scanner scanner, LibraryOperations operation, Student student) {
 
         System.out.println("Enter Book ID:");
         int id = scanner.nextInt();
 
-        service.returnBook(id, student);
+        operation.returnBook(id, student);
     }
 
     private static BookCategory selectCategory(Scanner scanner) {

@@ -1,23 +1,23 @@
-package service;
+package operations;
 
 import book.Book;
 import book.BookCategory;
 import book.Searchable;
 import invoice.Invoice;
 import invoice.InvoiceStatus;
-import model.Library;
+import library.SingletonLibrary;
 import person.Reader;
 import util.IdGenerator;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class LibraryService implements Searchable {
+public class LibraryOperations implements Searchable {
 
-    private final Library library;
+    private SingletonLibrary singletonLibrary;
 
-    public LibraryService(Library library) {
-        this.library = library;
+    public LibraryOperations(SingletonLibrary singletonLibrary) {
+        this.singletonLibrary = singletonLibrary;
     }
 
     public void addBook(Book book) {
@@ -27,7 +27,7 @@ public class LibraryService implements Searchable {
             return;
         }
 
-        library.getBooks().add(book);
+        singletonLibrary.getBooks().add(book);
         System.out.println(book.getName() + " has been added to the library!");
     }
 
@@ -40,7 +40,7 @@ public class LibraryService implements Searchable {
             return;
         }
 
-        library.getBooks().remove(book);
+        singletonLibrary.getBooks().remove(book);
         System.out.println("The book has been removed: " + book.getName());
     }
 
@@ -60,15 +60,21 @@ public class LibraryService implements Searchable {
 
     public List<Book> listBooksByCategory(BookCategory category) {
 
-        return library.getBooks()
+        List<Book> bookList = singletonLibrary.getBooks()
                 .stream()
                 .filter(book -> book.getCategory() == category)
-                .collect(Collectors.toList());
+                .toList();
+
+        if (bookList.isEmpty()) {
+            System.out.println("No books have been found in this category.");
+        }
+
+        return bookList;
     }
 
     public List<Book> listBooksByAuthor(String author) {
 
-        return library.getBooks()
+        return singletonLibrary.getBooks()
                 .stream()
                 .filter(book -> book.getAuthor().equalsIgnoreCase(author))
                 .collect(Collectors.toList());
@@ -78,15 +84,6 @@ public class LibraryService implements Searchable {
 
         Book book = searchById(bookId);
 
-        Invoice invoice = new Invoice(
-                IdGenerator.generateInvoiceId(),
-                reader,
-                book,
-                book.getPrice()
-        );
-
-        library.getInvoices().add(invoice);
-
         if (book == null) {
             System.out.println("The book cannot be found!");
             return;
@@ -94,7 +91,18 @@ public class LibraryService implements Searchable {
 
         reader.borrowBook(book);
 
-        library.getBorrowedBooks().put(book, reader);
+        singletonLibrary.getBorrowedBooks().put(book, reader);
+
+        Invoice invoice = new Invoice(
+                IdGenerator.generateInvoiceId(),
+                reader,
+                book,
+                book.getPrice()
+        );
+
+        singletonLibrary.getInvoices().add(invoice);
+
+        System.out.println("Invoice has been issued for the borrowed book.");
     }
 
     public void returnBook(int bookId, Reader reader) {
@@ -108,9 +116,9 @@ public class LibraryService implements Searchable {
 
         reader.returnBook(book);
 
-        library.getBorrowedBooks().remove(book);
+        singletonLibrary.getBorrowedBooks().remove(book);
 
-        for (Invoice invoice : library.getInvoices()) {
+        for (Invoice invoice : singletonLibrary.getInvoices()) {
             if (invoice.getBook().equals(book) &&
                 invoice.getReader().equals(reader) &&
                 invoice.getStatus() == InvoiceStatus.ISSUED) {
@@ -124,21 +132,31 @@ public class LibraryService implements Searchable {
 
     public void printBorrowedBooks() {
 
-        library.getBorrowedBooks()
+        if (singletonLibrary.getBorrowedBooks().isEmpty()) {
+            System.out.println("You haven't borrowed any books yet.");
+            return;
+        }
+
+        singletonLibrary.getBorrowedBooks()
                 .forEach((book, reader) ->
                         System.out.println(book.getName() + " has been borrowed by " + reader.getName()));
     }
 
     public void printInvoices() {
 
-        library.getInvoices()
+        if (singletonLibrary.getInvoices().isEmpty()) {
+            System.out.println("There are no recorded invoices.");
+            return;
+        }
+
+        singletonLibrary.getInvoices()
                 .forEach(System.out::println);
     }
 
     @Override
     public Book searchById(int id) {
 
-        return library.getBooks()
+        return singletonLibrary.getBooks()
                 .stream()
                 .filter(book -> book.getId() == id)
                 .findFirst()
@@ -148,7 +166,7 @@ public class LibraryService implements Searchable {
     @Override
     public List<Book> searchByName(String name) {
 
-        return library.getBooks()
+        return singletonLibrary.getBooks()
                 .stream()
                 .filter(book -> book.getName().equalsIgnoreCase(name))
                 .collect(Collectors.toList());
@@ -158,7 +176,7 @@ public class LibraryService implements Searchable {
     @Override
     public List<Book> searchByAuthor(String author) {
 
-        return library.getBooks()
+        return singletonLibrary.getBooks()
                 .stream()
                 .filter(book -> book.getAuthor().equalsIgnoreCase(author))
                 .collect(Collectors.toList());
