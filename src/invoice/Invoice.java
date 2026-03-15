@@ -49,6 +49,11 @@ public class Invoice {
     }
 
     public void refund() {
+
+        if (status == InvoiceStatus.REFUNDED) {
+            return;
+        }
+
         this.status = InvoiceStatus.REFUNDED;
     }
 

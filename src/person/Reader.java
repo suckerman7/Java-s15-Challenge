@@ -9,7 +9,7 @@ import java.util.List;
 
 public abstract class Reader extends Person implements Borrowable {
 
-    private List<Book> borrowedBooks;
+    private final List<Book> borrowedBooks;
     private static final int MAX_BOOK_LIMIT = 5;
 
     public Reader(int id, String name, String email, String phoneNumber) {

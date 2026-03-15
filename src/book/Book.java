@@ -48,7 +48,7 @@ public abstract class Book {
 
     public void setId(int id) {
 
-        ValidationUtil.requireNonNull(id, "The book's id cannot be null.");
+        ValidationUtil.requirePositiveLong((long) id, "This book cannot be found!");
         ValidationUtil.requirePositive(id, "The book's id cannot be less or equal to 0.");
 
         this.id = id;

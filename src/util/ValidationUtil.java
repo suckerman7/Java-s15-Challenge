@@ -20,6 +20,13 @@ public final class ValidationUtil {
         }
     }
 
+    public static void requirePositiveLong(Long id, String message) {
+
+        if (id <= 0) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
     public static void requirePositiveDouble(double value, String message) {
 
         if (value <= 0) {

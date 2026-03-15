@@ -8,13 +8,14 @@ import invoice.InvoiceStatus;
 import library.SingletonLibrary;
 import person.Reader;
 import util.IdGenerator;
+import util.ValidationUtil;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class LibraryOperations implements Searchable {
 
-    private SingletonLibrary singletonLibrary;
+    private final SingletonLibrary singletonLibrary;
 
     public LibraryOperations(SingletonLibrary singletonLibrary) {
         this.singletonLibrary = singletonLibrary;
@@ -22,10 +23,7 @@ public class LibraryOperations implements Searchable {
 
     public void addBook(Book book) {
 
-        if (book == null) {
-            System.out.println("The book is invalid!");
-            return;
-        }
+        ValidationUtil.requireNonNull(book, "Added book cannot be null!");
 
         singletonLibrary.getBooks().add(book);
         System.out.println(book.getName() + " has been added to the library!");
@@ -35,8 +33,10 @@ public class LibraryOperations implements Searchable {
 
         Book book = searchById(bookId);
 
-        if (book == null) {
-            System.out.println("The book cannot be found!");
+        ValidationUtil.requireNonNull(book, "The book you want to remove cannot be found!");
+
+        if (singletonLibrary.getBorrowedBooks().containsKey(book)) {
+            System.out.println("This book cannot be removed because it's currently borrowed.");
             return;
         }
 
@@ -44,7 +44,7 @@ public class LibraryOperations implements Searchable {
         System.out.println("The book has been removed: " + book.getName());
     }
 
-    public void updateBookPrice(int bookId, double newPrice) {
+    public void updateBookInfo(int bookId, String newName, String newAuthor, double newPrice) {
 
         Book book = searchById(bookId);
 
@@ -53,9 +53,19 @@ public class LibraryOperations implements Searchable {
             return;
         }
 
-        book.setPrice(newPrice);
+        if (newName != null && !newName.isBlank()) {
+            book.setName(newName);
+        }
 
-        System.out.println("The price of " + book.getName() + " has been updated.");
+        if (newAuthor != null && !newAuthor.isBlank()) {
+            book.setAuthor(newAuthor);
+        }
+
+        if (newPrice > 0) {
+            book.setPrice(newPrice);
+        }
+
+        System.out.println("The info of this book has been updated.");
     }
 
     public List<Book> listBooksByCategory(BookCategory category) {
@@ -84,13 +94,14 @@ public class LibraryOperations implements Searchable {
 
         Book book = searchById(bookId);
 
-        if (book == null) {
-            System.out.println("The book cannot be found!");
+        ValidationUtil.requireNonNull(book, "The book you want to borrow cannot be found!");
+
+        if (singletonLibrary.getBorrowedBooks().containsKey(book)) {
+            System.out.println("This book is already borrowed!");
             return;
         }
 
         reader.borrowBook(book);
-
         singletonLibrary.getBorrowedBooks().put(book, reader);
 
         Invoice invoice = new Invoice(
